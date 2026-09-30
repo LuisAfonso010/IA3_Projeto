@@ -1,0 +1,107 @@
+{
+    "data_treino": "2026-09-30 10:43:16",
+    "melhor_modelo": {
+        "nome": "SVM",
+        "ficheiro": "svm_opt.joblib",
+        "accuracy": 46.82,
+        "f1_score_macro": 44.34
+    },
+    "classes": [
+        "A",
+        "D",
+        "H"
+    ],
+    "features": [
+        "Home_Golos_Marcados_L5",
+        "Away_Golos_Marcados_L5",
+        "Home_Golos_Sofridos_L5",
+        "Away_Golos_Sofridos_L5",
+        "Home_Forma_L5",
+        "Away_Forma_L5",
+        "Diff_Forma_L5",
+        "Diff_GM_L5",
+        "Diff_GS_L5"
+    ],
+    "resumo_modelos": [
+        {
+            "Modelo": "SVM",
+            "Tipo": "Machine Learning",
+            "Accuracy (%)": 46.82,
+            "F1-Score Macro (%)": 44.34,
+            "Precision Macro (%)": 44.51,
+            "Recall Macro (%)": 44.25,
+            "F1-Score Empate 'D' (%)": 27.96,
+            "Melhores Hiperparâmetros": "{'C': 0.1, 'class_weight': 'balanced', 'gamma': 'auto', 'kernel': 'rbf'}"
+        },
+        {
+            "Modelo": "Logistic Regression",
+            "Tipo": "Machine Learning",
+            "Accuracy (%)": 46.95,
+            "F1-Score Macro (%)": 44.11,
+            "Precision Macro (%)": 44.07,
+            "Recall Macro (%)": 44.18,
+            "F1-Score Empate 'D' (%)": 26.47,
+            "Melhores Hiperparâmetros": "{'C': 0.01, 'class_weight': 'balanced', 'solver': 'lbfgs'}"
+        },
+        {
+            "Modelo": "Random Forest",
+            "Tipo": "Machine Learning",
+            "Accuracy (%)": 45.01,
+            "F1-Score Macro (%)": 43.02,
+            "Precision Macro (%)": 43.36,
+            "Recall Macro (%)": 42.91,
+            "F1-Score Empate 'D' (%)": 27.44,
+            "Melhores Hiperparâmetros": "{'class_weight': 'balanced_subsample', 'max_depth': 4, 'min_samples_split': 5, 'n_estimators': 50}"
+        },
+        {
+            "Modelo": "Decision Tree",
+            "Tipo": "Machine Learning",
+            "Accuracy (%)": 43.39,
+            "F1-Score Macro (%)": 41.52,
+            "Precision Macro (%)": 42.27,
+            "Recall Macro (%)": 41.72,
+            "F1-Score Empate 'D' (%)": 31.21,
+            "Melhores Hiperparâmetros": "{'class_weight': 'balanced', 'criterion': 'entropy', 'max_depth': 5}"
+        },
+        {
+            "Modelo": "Gradient Boosting",
+            "Tipo": "Machine Learning",
+            "Accuracy (%)": 46.32,
+            "F1-Score Macro (%)": 38.49,
+            "Precision Macro (%)": 41.36,
+            "Recall Macro (%)": 40.32,
+            "F1-Score Empate 'D' (%)": 16.88,
+            "Melhores Hiperparâmetros": "{'learning_rate': 0.1, 'max_depth': 5, 'n_estimators': 150, 'subsample': 0.8}"
+        },
+        {
+            "Modelo": "Naive Bayes",
+            "Tipo": "Machine Learning",
+            "Accuracy (%)": 49.5,
+            "F1-Score Macro (%)": 38.15,
+            "Precision Macro (%)": 41.98,
+            "Recall Macro (%)": 42.19,
+            "F1-Score Empate 'D' (%)": 6.03,
+            "Melhores Hiperparâmetros": "{'var_smoothing': np.float64(0.001)}"
+        },
+        {
+            "Modelo": "KNN",
+            "Tipo": "Machine Learning",
+            "Accuracy (%)": 44.95,
+            "F1-Score Macro (%)": 36.84,
+            "Precision Macro (%)": 37.9,
+            "Recall Macro (%)": 38.89,
+            "F1-Score Empate 'D' (%)": 11.85,
+            "Melhores Hiperparâmetros": "{'metric': 'euclidean', 'n_neighbors': 15, 'weights': 'uniform'}"
+        },
+        {
+            "Modelo": "TensorFlow Neural Net",
+            "Tipo": "Deep Learning",
+            "Accuracy (%)": 49.81,
+            "F1-Score Macro (%)": 35.6,
+            "Precision Macro (%)": 34.12,
+            "Recall Macro (%)": 41.57,
+            "F1-Score Empate 'D' (%)": 0.0,
+            "Melhores Hiperparâmetros": "Dense(64->32->16), Dropout(0.3/0.2), Adam(lr=0.0008)"
+        }
+    ]
+}
