@@ -1,0 +1,66 @@
+import os
+import json
+import joblib
+import pandas as pd
+import numpy as np
+import tensorflow as tf
+
+class PredictorFutebol:
+    """Classe responsável por carregar o modelo campeão e gerar previsões em produção."""
+    
+    def __init__(self, pasta_models: str):
+        self.pasta_models = pasta_models
+        caminho_manifesto = os.path.join(pasta_models, "models_manifest.json")
+        
+        if not os.path.exists(caminho_manifesto):
+            raise FileNotFoundError(f"Ficheiro de manifesto não encontrado em: {caminho_manifesto}")
+            
+        with open(caminho_manifesto, "r", encoding="utf-8") as f:
+            self.manifesto = json.load(f)
+            
+        self.nome_campeao = self.manifesto["melhor_modelo"]["nome"]
+        self.ficheiro_campeao = self.manifesto["melhor_modelo"]["ficheiro"]
+        self.features = self.manifesto["features"]
+        
+        # Carregar Encoders e Scaler
+        self.le = joblib.load(os.path.join(pasta_models, "label_encoder.joblib"))
+        self.scaler = joblib.load(os.path.join(pasta_models, "scaler.joblib"))
+        
+        # Carregar Modelo Campeão
+        caminho_modelo = os.path.join(pasta_models, self.ficheiro_campeao)
+        if self.ficheiro_campeao.endswith(".keras"):
+            self.modelo = tf.keras.models.load_model(caminho_modelo)
+            self.is_tf = True
+        else:
+            self.modelo = joblib.load(caminho_modelo)
+            self.is_tf = False
+            
+    def prever(self, dados_jogo: dict) -> dict:
+        """
+        Recebe um dicionário com métricas do jogo e devolve a previsão com probabilidades.
+        """
+        df_in = pd.DataFrame([dados_jogo])[self.features]
+        X_sc = self.scaler.transform(df_in)
+        
+        if self.is_tf:
+            probs = self.modelo.predict(X_sc, verbose=0)[0]
+            idx_pred = np.argmax(probs)
+        else:
+            if hasattr(self.modelo, "predict_proba"):
+                probs = self.modelo.predict_proba(X_sc)[0]
+            else:
+                probs = [0.33, 0.33, 0.33]
+            idx_pred = self.modelo.predict(X_sc)[0]
+            
+        rotulo_pred = self.le.inverse_transform([idx_pred])[0]
+        mapa_classes = {"H": "Vitória Casa (Home)", "D": "Empate (Draw)", "A": "Vitória Fora (Away)"}
+        
+        dict_probs = {}
+        for i, cls in enumerate(self.le.classes_):
+            dict_probs[mapa_classes.get(cls, cls)] = round(float(probs[i]) * 100, 2)
+            
+        return {
+            "modelo": self.nome_campeao,
+            "previsao": mapa_classes.get(rotulo_pred, rotulo_pred),
+            "probabilidades_%": dict_probs
+        }

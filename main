@@ -1,0 +1,50 @@
+import os
+import json
+from src.predict import PredictorFutebol
+
+def main():
+    print("=" * 70)
+    print("⚽ SISTEMA PREDITIVO DE RESULTADOS DE FUTEBOL (CRISP-ML)")
+    print("=" * 70 + "\n")
+
+    # Definir caminho dos modelos (ajusta o caminho se necessário)
+    caminho_models = os.path.join(os.getcwd(), "models")
+    if not os.path.exists(caminho_models):
+        caminho_models = "/content/drive/MyDrive/Projeto_Futebol/models"
+
+    try:
+        predictor = PredictorFutebol(caminho_models)
+        print(f"✅ Modelo Campeão Carregado: {predictor.nome_campeao}")
+        print(f"📋 Ficheiro Utilizado:       {predictor.ficheiro_campeao}\n")
+    except Exception as e:
+        print(f"❌ Erro ao carregar o modelo campeão: {e}")
+        return
+
+    # Exemplo de Jogo para Teste Rápido (Benfica vs Porto / Sporting vs Braga)
+    jogo_teste = {
+        'Home_Golos_Marcados_L5': 2.0,
+        'Away_Golos_Marcados_L5': 1.6,
+        'Home_Golos_Sofridos_L5': 0.6,
+        'Away_Golos_Sofridos_L5': 1.0,
+        'Home_Forma_L5': 13,    # 4 vitórias, 1 empate
+        'Away_Forma_L5': 10,    # 3 vitórias, 1 empate, 1 derrota
+        'Diff_Forma_L5': 3.0,   # |13 - 10|
+        'Diff_GM_L5': 0.4,      # |2.0 - 1.6|
+        'Diff_GS_L5': 0.4       # |0.6 - 1.0|
+    }
+
+    print("📊 A processar previsão para a partida de teste...")
+    resultado = predictor.prever(jogo_teste)
+
+    print("\n" + "=" * 50)
+    print("🎯 RESULTADO DA PREVISÃO")
+    print("=" * 50)
+    print(f"🤖 Modelo Ativo:       {resultado['modelo']}")
+    print(f"🏆 Previsão Principal:  {resultado['previsao']}")
+    print("\n📈 Probabilidades Calculadas:")
+    for cls, prob in resultado["probabilidades_%"].items():
+        print(f"   • {cls:<22}: {prob}%")
+    print("=" * 50 + "\n")
+
+if __name__ == "__main__":
+    main()
