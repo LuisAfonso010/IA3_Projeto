@@ -1,0 +1,8 @@
+{
+    "backend_preferido": "transformers",
+    "model_id": "Qwen/Qwen2.5-0.5B-Instruct",
+    "alternativa_unsloth": "unsloth/Qwen2.5-0.5B-Instruct",
+    "fallback": "template-offline",
+    "nota": "Se existir models/llm/Qwen2.5-0.5B-Instruct usa-se essa cópia local; caso contrário descarrega do Hugging Face. Precisa de torch e transformers. Sem isso, fallback offline.",
+    "modelo_local": "models/llm/Qwen2.5-0.5B-Instruct"
+}
