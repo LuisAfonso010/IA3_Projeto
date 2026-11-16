@@ -1,0 +1,4 @@
+
+models/generative_agent/*.safetensors
+models/generative_agent/*.bin
+__pycache__/
