@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+venv/
+.venv/
+.env
+.DS_Store
+# dataset bruto (150 MB) - descarregar do Kaggle
+data/raw/creditcard.csv
+
+# pesos do LLM (1 GB) - não versionar
+models/llm/
