@@ -1,66 +1,110 @@
-import os
 import json
+from pathlib import Path
 import joblib
-import pandas as pd
 import numpy as np
+import pandas as pd
 import tensorflow as tf
+
 
 class PredictorFutebol:
     """Classe responsável por carregar o modelo campeão e gerar previsões em produção."""
-    
-    def __init__(self, pasta_models: str):
-        self.pasta_models = pasta_models
-        caminho_manifesto = os.path.join(pasta_models, "models_manifest.json")
-        
-        if not os.path.exists(caminho_manifesto):
+
+    def __init__(self, pasta_models: str | Path):
+        self.pasta_models = Path(pasta_models)
+        caminho_manifesto = self.pasta_models / "models_manifest.json"
+
+        if not caminho_manifesto.exists():
             raise FileNotFoundError(f"Ficheiro de manifesto não encontrado em: {caminho_manifesto}")
-            
-        with open(caminho_manifesto, "r", encoding="utf-8") as f:
-            self.manifesto = json.load(f)
-            
-        self.nome_campeao = self.manifesto["melhor_modelo"]["nome"]
-        self.ficheiro_campeao = self.manifesto["melhor_modelo"]["ficheiro"]
-        self.features = self.manifesto["features"]
-        
-        # Carregar Encoders e Scaler
-        self.le = joblib.load(os.path.join(pasta_models, "label_encoder.joblib"))
-        self.scaler = joblib.load(os.path.join(pasta_models, "scaler.joblib"))
-        
+
+        self.manifesto = json.loads(caminho_manifesto.read_text(encoding="utf-8"))
+
+        # Suporta diferentes formatos de chave no models_manifest.json
+        melhor = self.manifesto.get("melhor_modelo") or self.manifesto.get("best_model")
+        if isinstance(melhor, dict):
+            self.nome_campeao = melhor.get("nome", "gradient_boosting_opt")
+            self.ficheiro_campeao = melhor.get("ficheiro", f"{self.nome_campeao}.joblib")
+        elif isinstance(melhor, str):
+            self.nome_campeao = Path(melhor).stem
+            self.ficheiro_campeao = melhor if "." in melhor else f"{melhor}.joblib"
+        else:
+            self.nome_campeao = "gradient_boosting_opt"
+            self.ficheiro_campeao = "gradient_boosting_opt.joblib"
+
+        self.features = self.manifesto.get(
+            "features",
+            [
+                "Home_Golos_Marcados_L5",
+                "Away_Golos_Marcados_L5",
+                "Home_Golos_Sofridos_L5",
+                "Away_Golos_Sofridos_L5",
+                "Home_Forma_L5",
+                "Away_Forma_L5",
+                "Diff_Forma_L5",
+                "Diff_GM_L5",
+                "Diff_GS_L5",
+            ],
+        )
+
+        # Carregar LabelEncoder e StandardScaler apenas se existirem em models/
+        le_path = self.pasta_models / "label_encoder.joblib"
+        sc_path = self.pasta_models / "scaler.joblib"
+        self.le = joblib.load(le_path) if le_path.exists() else None
+        self.scaler = joblib.load(sc_path) if sc_path.exists() else None
+
         # Carregar Modelo Campeão
-        caminho_modelo = os.path.join(pasta_models, self.ficheiro_campeao)
+        caminho_modelo = self.pasta_models / self.ficheiro_campeao
         if self.ficheiro_campeao.endswith(".keras"):
             self.modelo = tf.keras.models.load_model(caminho_modelo)
             self.is_tf = True
         else:
             self.modelo = joblib.load(caminho_modelo)
             self.is_tf = False
-            
+
+    def _preparar_features(self, dados_jogo: dict) -> pd.DataFrame:
+        df_in = pd.DataFrame([dados_jogo]).copy()
+
+        # Calcular automaticamente as 3 features de diferença caso não venham no dicionário
+        if "Diff_Forma_L5" not in df_in and {"Home_Forma_L5", "Away_Forma_L5"}.issubset(df_in.columns):
+            df_in["Diff_Forma_L5"] = (df_in["Home_Forma_L5"] - df_in["Away_Forma_L5"]).abs()
+        if "Diff_GM_L5" not in df_in and {"Home_Golos_Marcados_L5", "Away_Golos_Marcados_L5"}.issubset(df_in.columns):
+            df_in["Diff_GM_L5"] = (df_in["Home_Golos_Marcados_L5"] - df_in["Away_Golos_Marcados_L5"]).abs()
+        if "Diff_GS_L5" not in df_in and {"Home_Golos_Sofridos_L5", "Away_Golos_Sofridos_L5"}.issubset(df_in.columns):
+            df_in["Diff_GS_L5"] = (df_in["Home_Golos_Sofridos_L5"] - df_in["Away_Golos_Sofridos_L5"]).abs()
+
+        return df_in.reindex(columns=self.features, fill_value=0.0)
+
     def prever(self, dados_jogo: dict) -> dict:
-        """
-        Recebe um dicionário com métricas do jogo e devolve a previsão com probabilidades.
-        """
-        df_in = pd.DataFrame([dados_jogo])[self.features]
-        X_sc = self.scaler.transform(df_in)
-        
+        """Recebe um dicionário com métricas do jogo e devolve a previsão com probabilidades."""
+        df_in = self._preparar_features(dados_jogo)
+        X_in = self.scaler.transform(df_in) if self.scaler is not None else df_in
+
         if self.is_tf:
-            probs = self.modelo.predict(X_sc, verbose=0)[0]
-            idx_pred = np.argmax(probs)
+            probs = self.modelo.predict(np.asarray(X_in, dtype=np.float32), verbose=0)[0]
+            idx_pred = int(np.argmax(probs))
         else:
-            if hasattr(self.modelo, "predict_proba"):
-                probs = self.modelo.predict_proba(X_sc)[0]
-            else:
-                probs = [0.33, 0.33, 0.33]
-            idx_pred = self.modelo.predict(X_sc)[0]
-            
-        rotulo_pred = self.le.inverse_transform([idx_pred])[0]
+            probs = (
+                self.modelo.predict_proba(X_in)[0]
+                if hasattr(self.modelo, "predict_proba")
+                else [0.3333, 0.3333, 0.3333]
+            )
+            idx_pred = self.modelo.predict(X_in)[0]
+
+        classes = list(self.le.classes_) if self.le is not None else ["A", "D", "H"]
+        if self.le is not None and isinstance(idx_pred, (int, np.integer)):
+            rotulo_pred = str(self.le.inverse_transform([idx_pred])[0])
+        elif isinstance(idx_pred, (int, np.integer)) and 0 <= int(idx_pred) < len(classes):
+            rotulo_pred = str(classes[int(idx_pred)])
+        else:
+            rotulo_pred = str(idx_pred)
+
         mapa_classes = {"H": "Vitória Casa (Home)", "D": "Empate (Draw)", "A": "Vitória Fora (Away)"}
-        
-        dict_probs = {}
-        for i, cls in enumerate(self.le.classes_):
-            dict_probs[mapa_classes.get(cls, cls)] = round(float(probs[i]) * 100, 2)
-            
+        dict_probs = {
+            mapa_classes.get(str(cls), str(cls)): round(float(probs[i]) * 100, 2)
+            for i, cls in enumerate(classes)
+        }
+
         return {
             "modelo": self.nome_campeao,
             "previsao": mapa_classes.get(rotulo_pred, rotulo_pred),
-            "probabilidades_%": dict_probs
+            "probabilidades_%": dict_probs,
         }

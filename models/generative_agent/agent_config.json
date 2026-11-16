@@ -1,0 +1,10 @@
+{
+  "base_model": "Qwen/Qwen2.5-1.5B-Instruct",
+  "local_dir": "C:\\Users\\istec\\Documents\\IA3_Projeto\\models\\generative_agent",
+  "agents": [
+    "AgenteAnalistaPreditivo",
+    "AgenteRelatorGenerativo"
+  ],
+  "temperature": 0.3,
+  "max_new_tokens": 512
+}
