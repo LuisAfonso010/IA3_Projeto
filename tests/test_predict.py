@@ -55,3 +55,10 @@ def test_todos_os_modelos_devolvem_probabilidade_valida(predictor_todos):
 def test_todos_os_modelos_transacao_incompleta_levanta_erro(predictor_todos):
     with pytest.raises(ValueError):
         predictor_todos.prever({"Amount": 10})
+
+
+def test_dois_melhores_por_f1_e_roc_auc():
+    from src.evaluate_models import dois_melhores
+    df = pd.DataFrame({"Modelo": ["A", "B", "C"], "F1 Fraude (%)": [50.0, 80.0, 70.0], "ROC-AUC (%)": [99.0, 90.0, 95.0]})
+    r = dois_melhores(df)
+    assert list(r["F1 Fraude (%)"]["Modelo"]) == ["B", "C"] and list(r["ROC-AUC (%)"]["Modelo"]) == ["A", "C"]

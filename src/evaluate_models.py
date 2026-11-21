@@ -64,6 +64,12 @@ def avaliar_modelos_guardados():
     return df_eval, scores, y_te
 
 
+def dois_melhores(df_eval: pd.DataFrame) -> dict:
+    """Os 2 melhores modelos por F1 da fraude e por ROC-AUC (critérios pedidos nas orientações da apresentação)."""
+    return {metrica: df_eval.nlargest(2, metrica)[["Modelo", metrica]].reset_index(drop=True)
+            for metrica in ("F1 Fraude (%)", "ROC-AUC (%)")}
+
+
 def guardar_manifesto(df_eval: pd.DataFrame, limiar: float = 0.5) -> dict:
     melhor = df_eval.iloc[0]
     meta = {
