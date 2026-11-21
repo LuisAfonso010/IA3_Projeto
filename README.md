@@ -73,4 +73,4 @@ python run_system.py --llm offline --cenario ataque        # sem LLM nem Telegra
 python run_system.py --llm transformers --cenario ataque   # LLM local Qwen2.5-0.5B em models/llm/ (não versionado)
 ```
 
-Variáveis num `.env` (não versionado): `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. Sem token, as mensagens vão para `reports/telegram_outbox.jsonl`. Testes: `pytest tests/test_agents.py`.
+Variáveis de ambiente (o código lê `os.environ`; não há leitura de `.env`): `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. Sem token, as mensagens vão para `reports/telegram_outbox.jsonl`. Testes: `pytest tests/test_agents.py`.
