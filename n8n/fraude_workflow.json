@@ -1,0 +1,27 @@
+{
+  "name": "Deteção de Fraude - Alertas e Dashboard (IA III)",
+  "nodes": [
+    {"parameters": {"rule": {"interval": [{"field": "cronExpression", "expression": "0 20 * * *"}]}},
+     "id": "n1", "name": "Todos os dias às 20h", "type": "n8n-nodes-base.scheduleTrigger", "typeVersion": 1.2, "position": [200, 200]},
+    {"parameters": {"url": "http://localhost:8000/dashboard?cenario=dia_normal", "method": "GET"},
+     "id": "n2", "name": "Pedir dashboard à API", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [440, 200]},
+    {"parameters": {"chatId": "={{$env.TELEGRAM_CHAT_ID}}", "text": "={{ '📊 Dashboard diário\\nTransações: ' + $json.factos.n_transacoes + '\\nAlertas: ' + $json.factos.n_alertas + '\\nValor em risco: ' + $json.factos.valor_em_risco + ' EUR' }}"},
+     "id": "n3", "name": "Telegram - Dashboard", "type": "n8n-nodes-base.telegram", "typeVersion": 1.2, "position": [680, 200]},
+    {"parameters": {"httpMethod": "POST", "path": "transacao", "responseMode": "lastNode"},
+     "id": "n4", "name": "Webhook - nova transação", "type": "n8n-nodes-base.webhook", "typeVersion": 2, "position": [200, 420]},
+    {"parameters": {"url": "http://localhost:8000/predict", "method": "POST", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ JSON.stringify($json.body) }}"},
+     "id": "n5", "name": "Classificar (modelo campeão)", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [440, 420]},
+    {"parameters": {"conditions": {"string": [{"value1": "={{$json.previsao}}", "value2": "Fraude"}]}},
+     "id": "n6", "name": "É fraude?", "type": "n8n-nodes-base.if", "typeVersion": 1, "position": [680, 420]},
+    {"parameters": {"chatId": "={{$env.TELEGRAM_CHAT_ID}}", "text": "={{ '🚨 Possível fraude (' + $json['probabilidade_fraude_%'] + '%)' }}"},
+     "id": "n7", "name": "Telegram - Alerta", "type": "n8n-nodes-base.telegram", "typeVersion": 1.2, "position": [920, 380]}
+  ],
+  "connections": {
+    "Todos os dias às 20h": {"main": [[{"node": "Pedir dashboard à API", "type": "main", "index": 0}]]},
+    "Pedir dashboard à API": {"main": [[{"node": "Telegram - Dashboard", "type": "main", "index": 0}]]},
+    "Webhook - nova transação": {"main": [[{"node": "Classificar (modelo campeão)", "type": "main", "index": 0}]]},
+    "Classificar (modelo campeão)": {"main": [[{"node": "É fraude?", "type": "main", "index": 0}]]},
+    "É fraude?": {"main": [[{"node": "Telegram - Alerta", "type": "main", "index": 0}], []]}
+  },
+  "settings": {"executionOrder": "v1"}
+}

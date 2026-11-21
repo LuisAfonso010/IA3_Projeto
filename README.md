@@ -12,11 +12,15 @@ Componente individual de **Inteligência Artificial III** (ISTEC, Robótica e In
 ├── data/
 │   ├── processed/      # treino (80% mais antigo) e teste (20% mais recente) já preparados
 │   └── raw/            # colocar aqui o creditcard.csv (não versionado, ~150 MB)
-├── docs/               # Data Understanding, Sprints 0-2, Product Backlog, Documentacao_Codigo e gráficos
-├── models/             # 7 modelos scikit-learn (.joblib), 1 MLP TensorFlow (.keras), scaler e models_manifest.json
-├── notebooks/          # Data_Understanding, Data_Preparation, Modeling, Evaluation, Deployment
-├── src/                # config, eda_creditcard, data_preparation, train_model, tune_model, evaluate_models, predict
-├── tests/              # test_predict.py
+├── docs/               # Data Understanding, Sprints 0-2, Product Backlog, Documentacao_Codigo, diagramas do multiagente e gráficos
+├── models/             # 7 modelos scikit-learn (.joblib), 1 MLP TensorFlow (.keras), scaler, models_manifest.json e llm_config.json
+├── notebooks/          # Data_Understanding, Data_Preparation, Modeling, Evaluation, Deployment, Multiagent_System
+├── src/                # config, eda_creditcard, data_preparation, train_model, tune_model, evaluate_models, predict, api_server e agents/ (multiagente)
+├── tests/              # test_predict.py e test_agents.py
+├── skills/             # 4 skills dos agentes (SKILL.md)
+├── n8n/                # fluxo n8n (fraude_workflow.json)
+├── reports/            # relatórios gerados pelos agentes
+├── run_system.py       # corre o sistema multiagente
 ├── main.py             # classifica 1 fraude e 1 transação legítima reais com todos os modelos
 └── requirements.txt
 ```
@@ -57,3 +61,14 @@ pytest tests/
 ```
 
 `Deployment.ipynb` faz o mesmo que `main.py`: usa `PredictorFraude` (modelo campeão) e `PredictorTodos` (todos os modelos guardados em `models/`).
+
+## Sistema multiagente (LLM)
+
+Agentes: Classificador → Analista → Relator (LLM) → Notificador (Telegram), coordenados por um Orquestrador (`src/agents/`). Skills em `skills/`.
+
+```bash
+python run_system.py --llm offline --cenario ataque        # sem LLM nem Telegram (modo simulação)
+python run_system.py --llm transformers --cenario ataque   # LLM local Qwen2.5-0.5B em models/llm/ (não versionado)
+```
+
+Variáveis num `.env` (não versionado): `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. Sem token, as mensagens vão para `reports/telegram_outbox.jsonl`. Testes: `pytest tests/test_agents.py`.

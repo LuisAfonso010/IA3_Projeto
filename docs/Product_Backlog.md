@@ -10,5 +10,4 @@
 | PB06 | Evaluation | Comparação por PR-AUC, campeão e manifesto | Alta | 2 |
 | PB07 | Deployment | PredictorFraude, PredictorTodos e main.py | Alta | 2 |
 | PB08 | Documentação | Documentação do código e guia de defesa | Alta | 2 |
-
-O sistema multiagente (LLM, Telegram, skills) é uma entrega de grupo e não faz parte deste backlog individual.
+| PB09 | Deployment | Sistema multiagente: agentes, LLM (Transformers), Telegram, skills e n8n | Alta | - |

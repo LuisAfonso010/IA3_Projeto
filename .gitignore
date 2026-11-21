@@ -7,3 +7,6 @@ venv/
 .DS_Store
 # dataset bruto (150 MB) - descarregar do Kaggle
 data/raw/creditcard.csv
+models/llm/
+reports/telegram_outbox.jsonl
+resultado_execucao.txt
