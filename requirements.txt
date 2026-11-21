@@ -1,0 +1,14 @@
+# Núcleo (obrigatório). Usa a MESMA versão de scikit-learn com que treinaste os .joblib.
+pandas
+numpy
+scikit-learn
+joblib
+
+# Modo hf (US03): relatórios gerados pelo Qwen2.5-1.5B-Instruct local
+transformers
+torch
+accelerate
+huggingface_hub
+
+# Modo crewai (US04)
+crewai
