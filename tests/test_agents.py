@@ -44,3 +44,9 @@ def test_comando_desconhecido_devolve_ajuda(orq):
 
 def test_gravidade_limiares():
     assert (tools.gravidade(0.95), tools.gravidade(0.75), tools.gravidade(0.55)) == ("CRÍTICO", "ALTO", "MÉDIO")
+
+
+def test_relatorio_do_relator_e_enviado_para_o_telegram(orq, tmp_path, monkeypatch):
+    monkeypatch.setattr(telegram_bot, "OUTBOX", tmp_path / "out.jsonl")
+    orq.processar_lote(cenario("ataque", 1500), guardar=False)
+    assert "Relatório diário de fraude" in (tmp_path / "out.jsonl").read_text(encoding="utf-8")

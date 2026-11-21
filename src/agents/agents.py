@@ -82,10 +82,12 @@ class AgenteNotificador(Agente):
         super().__init__(*a, **k)
         self.tg = notificador
 
-    def executar(self, factos: dict, modelo: dict) -> dict:
+    def executar(self, factos: dict, modelo: dict, relatorio: str = "") -> dict:
         n = self.tg.notificar_alertas(factos)
         self.tg.enviar(self.tg.formatar_dashboard(factos, modelo))
-        self.registar(f"enviou {n} alertas + dashboard ({'simulação' if self.tg.simulacao else 'Telegram real'})")
+        if relatorio:
+            self.tg.enviar(relatorio[:4000])  # limite do Telegram: 4096 caracteres por mensagem
+        self.registar(f"enviou {n} alertas + dashboard{' + relatório' if relatorio else ''} ({'simulação' if self.tg.simulacao else 'Telegram real'})")
         return {"alertas_enviados": n, "simulacao": self.tg.simulacao}
 
 
@@ -111,7 +113,7 @@ class Orquestrador:
         emitir("Analista", f"| Métrica | Valor |\n|---|---|\n{tabela}\n\nTop alertas:\n{top or '- sem alertas'}", saida, 2)
         relatorio = self.relator.executar(factos, modelo)
         emitir("Relator", relatorio, saida, 3)
-        envio = self.notificador.executar(factos, modelo)
+        envio = self.notificador.executar(factos, modelo, relatorio)
         emitir("Notificador", f"- {self.notificador.log[-1]}", saida, 4)
         if guardar:
             REPORTS.mkdir(exist_ok=True)

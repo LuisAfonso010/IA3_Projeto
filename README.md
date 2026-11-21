@@ -66,6 +66,8 @@ pytest tests/
 
 Agentes: Classificador → Analista → Relator (LLM) → Notificador (Telegram), coordenados por um Orquestrador (`src/agents/`). Skills em `skills/`.
 
+O relatório do Relator sai no terminal, em `reports/relatorio_<data>.md` e no Telegram (o Notificador envia também os alertas e o dashboard).
+
 ```bash
 python run_system.py --llm offline --cenario ataque        # sem LLM nem Telegram (modo simulação)
 python run_system.py --llm transformers --cenario ataque   # LLM local Qwen2.5-0.5B em models/llm/ (não versionado)
